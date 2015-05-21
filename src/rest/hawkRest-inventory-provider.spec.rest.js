@@ -4,10 +4,12 @@ describe('Provider: Hawkular live REST', function() {
   var res;
   var httpReal;
   var $http;
+  // todo: put credentials to each request, find out what is my tenant uuid and do the testsuite against it
+  // also test if the stuff was precreated correctly
 
-  var debug = false;
+  var debug = true;
   var suffix = '-test-0';
-  var tId = 'tenant' + suffix;
+  var tId;
   var typeId = 'type' + suffix;
   var eId = 'environment' + suffix;
   var rId = 'resource-1' + suffix;
@@ -46,6 +48,14 @@ describe('Provider: Hawkular live REST', function() {
     res = _$resource_;
     httpReal = _httpReal_;
     $http = _$http_;
+
+    // it assumes we are running the tests against the hawkular built with -Pdev profile
+    // 'amRvZTpwYXNzd29yZA==' ~ jdoe:password in base64
+    $http.defaults.headers.common['Authorization'] = 'Basic amRvZTpwYXNzd29yZA==';
+
+    // current rest implementation doesn't allow for different origins (despite the fact the
+    // 'Access-Control-Allow-Origin: *' header is set)
+    $http.defaults.headers.common['Origin'] = 'http://127.0.0.1:8080';
   }));
 
   describe('Resources: ', function() {
@@ -55,9 +65,6 @@ describe('Provider: Hawkular live REST', function() {
       jasmine.DEFAULT_TIMEOUT_INTERVAL = TIMEOUT;
 
       beforeEach(function(done) {
-        var tenant = {
-          id: tId
-        }
         var environment = {
           id: eId
         }
@@ -70,32 +77,40 @@ describe('Provider: Hawkular live REST', function() {
           resourceTypeId: typeId
         }
 
-        var createTenant = function() {
-          debug && dump('creating tenant..');
-          return HawkularInventory.Tenant.save(tenant).$promise;
-        }
+        var getTenant = function() {
+          debug && dump('retrieving tenant..');
+          //curl 'http://jdoe:password@localhost:8080/hawkular/inventory/tenant'
+          return HawkularInventory.Tenant.query().$promise;
+        };
         var createEnv = function() {
           debug && dump('creating environment..');
           return HawkularInventory.Environment.save({tenantId: tId}, environment).$promise;
-        }
+        };
         var createResourceType = function() {
           debug && dump('creating resource type..');
           return HawkularInventory.ResourceType.save({tenantId: tId}, resourceType).$promise;
-        }
+        };
         var createResource = function() {
           debug && dump('creating resource' + rId + '..');
           return HawkularInventory.Resource.save({tenantId: tId, environmentId: eId}, resource).$promise;
-        }
+        };
         var err = function(fault) {
           debug && dump('call failed with: ' + JSON.stringify(fault));
           done();
           fail(errorFn(fault));
-        }
-        var finish = function() {
+        };
+        var finish = function(){
           resolved = true;
-        }
+        };
 
-        result = createTenant().then(createEnv).then(createResourceType).then(createResource).catch(err);
+        result = getTenant()
+        .then(function(tenant) {
+          tId = tenant.id;
+          createEnv();
+        })
+        .then(createResourceType)
+        .then(createResource)
+        .catch(err);
         restPromiseResolve(result, done, finish);
       });
 
