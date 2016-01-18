@@ -14,18 +14,22 @@
 /// limitations under the License.
 
 /// <reference path="../../lib/hawtio-core-dts/angular.d.ts" />
+/// <reference path="../../lib/hawtio-core-dts/angular-resource.d.ts" />
+/// <reference path="../../node_modules/@reactivex/rxjs/dist/cjs/Rx.d.ts" />
 
-module hawkularRest {
+import { ICommonResponse, IExecutionOperationResponse, IDeployApplicationResponse, IAddJdbcDriverResponse,
+  IRemoveJdbcDriverResponse, IExportJdrResponse, IAddDatasourceResponse, IUpdateDatasourceResponse,
+  IRemoveDatasourceResponse, IGenericErrorResponse, IWebSocketResponseHandler }
+  from './hawkRest-ops-factory';
 
-  export var _module = angular.module('hawkular.services', ['ngResource']);
+import { IInventoryEntity, IInventoryDataActions, IInventoryResourceActions, IWebSocketHandler, IWebSocketDisposable,
+  IEventsActions, IHawkularInventory }
+  from './hawkRest-inventory-provider';
 
-  // here comes type definitions and interfaces that can be reused by consumers of this module
-  // these types/ifaces can define a contract
-  export interface IWebSocketHandler {
-    onmessage?(json: any): void;
-    onopen?(event: any): void;
-    onclose?(event: any): void;
-    onerror?(event: any): void;
-  }
+const _module = angular.module('hawkular.services', ['ngResource']);
 
-}
+export { _module, ICommonResponse, IExecutionOperationResponse, IDeployApplicationResponse, IAddJdbcDriverResponse,
+  IRemoveJdbcDriverResponse, IExportJdrResponse, IAddDatasourceResponse, IUpdateDatasourceResponse,
+  IRemoveDatasourceResponse, IGenericErrorResponse, IWebSocketResponseHandler,
+  IInventoryEntity, IInventoryDataActions, IInventoryResourceActions, IWebSocketHandler, IWebSocketDisposable,
+  IEventsActions, IHawkularInventory };
